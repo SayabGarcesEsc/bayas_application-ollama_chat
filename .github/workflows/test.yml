@@ -1,4 +1,4 @@
-name: Java CI with Redis (Gradle)
+name: Java Spring Boot with Ollama model (AI engineer locally)
 
 on:
   push:
@@ -9,19 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    # Setup the Redis container natively
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -32,15 +19,33 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'          # <-- Updated to automatically cache Gradle dependencies
+          cache: 'gradle'          # <-- Automatically caches Gradle dependencies
+
+      # Install and Start Ollama Server with DeepSeek Model
+      - name: Install and Setup Ollama
+        run: |
+          # 1. Instalar Ollama de forma nativa en la máquina virtual de Ubuntu
+          curl -fsSL https://ollama.com | sh
+          
+          # 2. Iniciar el servicio de Ollama en segundo plano
+          ollama serve &
+          
+          # 3. Esperar un momento a que el servidor web responda en el puerto 11434
+          echo "Esperando a que Ollama responda..."
+          until curl -s http://localhost:11434 > /dev/null; do sleep 2; done
+          
+          # 4. Descargar el modelo específico definido en application.properties
+          echo "Descargando modelo deepseek-r1:1.5b..."
+          ollama pull deepseek-r1:1.5b
 
       # Grant execute permissions for the Gradle Wrapper
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
 
-      # Run sequentially Spring Boot test and pitest using Gradle Wrapper & passes the Redis env to both execution contexts
+      # Run sequentially Spring Boot test and pitest using Gradle Wrapper 
+      # Passes Redis and Ollama env properties to the execution contexts
       - name: Run Spring Boot Tests and PiTest
         run: ./gradlew clean test pitest
         env:
-          SPRING_DATA_REDIS_HOST: localhost
-          SPRING_DATA_REDIS_PORT: 6379
+          SPRING_AI_OLLAMA_BASE_URL: http://localhost:11434
+          SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL: deepseek-r1:1.5b
