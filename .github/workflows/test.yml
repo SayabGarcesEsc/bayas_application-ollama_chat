@@ -23,39 +23,8 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      # 3. Install Ollama and start it properly with systemd / systemctl 
-      # This ensures it survives across step transitions on Ubuntu runners
-      - name: Install Ollama
-        run: |
-          curl -fsSL https://ollama.com/install.sh | sh
-      - name: Start Ollama server  
-        run: |
-          # Start server in the background
-          ollama serve &
-
-          # Wait for the server API to become responsive
-          echo "Waiting for Ollama server to start..."
-          for i in {1..30}: do
-            if curl -s http://localhost:11434/api/tags > /dev/null; then
-              echo "Ollama server is up!"
-              break
-            fi
-            sleep 2
-          done
-
-      - name: Waiting for answering while 30 seconds
-        run: |
-          echo "Waiting for Ollama answers..."
-          COUNTER=0
-          until curl -s http://localhost:11434 > /dev/null || [ $COUNTER -eq 15 ]; do
-            sleep 2
-            let COUNTER=COUNTER+1
-          done
-    
-          if [ $COUNTER -eq 15 ]; then
-            echo "Error: Ollama is down!"
-            exit 1}
-          fi
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@v2
         
       - name: Pull Base Model
         run: |
