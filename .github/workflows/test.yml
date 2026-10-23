@@ -25,6 +25,11 @@ jobs:
 
       - name: Setup Ollama
         uses: ai-action/setup-ollama@v2
+        
+      - name: Pull Base Model
+        run: |
+          # Pull the base model you want to customize (e.g. llama3.2, phi3, etc)
+          ollama pull deepseek-r1:1.5b
 
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
