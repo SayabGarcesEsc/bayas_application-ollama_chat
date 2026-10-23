@@ -1,21 +1,45 @@
-.gradle
-**/build/
-!**/src/**/build/
+# =========================================================================
+# SECCIÓN JAVA / SPRING BOOT (Copiado de la plantilla Maven/Gradle)
+# =========================================================================
+target/
+build/
+.gradle/
+bin/
+*.class
+*.jar
+*.war
+*.ear
 
-# Ignore Gradle GUI config
-gradle-app.setting
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
-# Avoid ignore Gradle wrapper properties
-!gradle-wrapper.properties
-
-# Cache of project
-.gradletasknamecache
-
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
+# Configuraciones de IDEs (Eclipse, IntelliJ, NetBeans)
+.idea/
+*.iml
 .classpath
+.project
+.settings/
+*.ipr
+
+# =========================================================================
+# SECCIÓN JAVASCRIPT / STATIC UI (Agregar manualmente)
+# =========================================================================
+# Dependencias de Node (si usas npm, yarn o pnpm para maquetar la UI)
+node_modules/
+/npm-debug.log*
+/yarn-error.log*
+/yarn-debug.log*
+
+# Archivos de producción o compilación de la UI (si usas bundlers como Vite o Webpack)
+# Nota: No ignores estos archivos si pones tu HTML/JS estático directamente 
+# dentro de 'src/main/resources/static' y los editas a mano.
+# dist/
+# out/
+
+# Variables de entorno y credenciales locales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

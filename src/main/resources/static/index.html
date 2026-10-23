@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring AI + Llama 3.2 Chat</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary-color: #4f46e5;
+            --text-color: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #4338ca;
+        }
+        button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+        }
+        .response-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9fafb;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            min-height: 40px;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <h2>Llama 3.2 AI Playground</h2>
+    <textarea id="userInput" placeholder="Ask Llama 3.2 something..."></textarea>
+    <button id="sendBtn" onclick="askAI()">Send to AI</button>
+
+    <div id="responseContainer" class="hidden">
+        <h3>Response:</h3>
+        <div id="aiResponse" class="response-box"></div>
+    </div>
+</div>
+
+<script>
+    async function askAI() {
+        const inputField = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const responseContainer = document.getElementById('responseContainer');
+        const responseBox = document.getElementById('aiResponse');
+        
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        // UI Feedback: Disable button and show loading state
+        sendBtn.disabled = true;
+        sendBtn.innerText = "Thinking...";
+        responseContainer.classList.remove('hidden');
+        responseBox.innerText = "Waiting for Llama 3.2 to reply...";
+
+        try {
+            // Encode the query parameters cleanly
+            const url = `/spring-ai/api-chat/generate?message=${encodeURIComponent(message)}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Server returned code ${response.status}`);
+            }
+            
+            const data = await response.text();
+            responseBox.innerText = data;
+        } catch (error) {
+            responseBox.innerText = `Error: Could not reach the backend. (${error.message})`;
+        } finally {
+            // Reset button state
+            sendBtn.disabled = false;
+            sendBtn.innerText = "Send to AI";
+        }
+    }
+</script>
+
+</body>
+</html>
