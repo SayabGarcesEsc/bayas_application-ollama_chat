@@ -9,18 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # Setup Java 21 Environment
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'          # <-- Automatically caches Gradle dependencies
-
       # Install and Start Ollama Server with DeepSeek Model
       - name: Install and Setup Ollama
         run: |
@@ -37,7 +27,16 @@ jobs:
           # 4. Descargar el modelo específico definido en application.properties
           echo "Descargando modelo deepseek-r1:1.5b..."
           ollama pull deepseek-r1:1.5b
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
+      # Setup Java 21 Environment
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'          # <-- Automatically caches Gradle dependencies
       # Grant execute permissions for the Gradle Wrapper
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
