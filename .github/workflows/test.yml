@@ -2,7 +2,7 @@ name: Java Spring Boot with Ollama model (AI engineer locally)
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "**" ]
   pull_request:
     branches: [ "main", "master" ]
 
