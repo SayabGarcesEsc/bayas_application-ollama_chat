@@ -43,16 +43,18 @@ jobs:
             sleep 2
           done
 
-      - name: Waiting for answering while 30 seconds
-        run: echo "Waiting for Ollama answers..." |
+        - name: Waiting for answering while 30 seconds
+        run: |
+          echo "Waiting for Ollama answers..."
           COUNTER=0
           until curl -s http://localhost:11434 > /dev/null || [ $COUNTER -eq 15 ]; do
             sleep 2
-            COUNTER=$((COUNTER+1))
+            let COUNTER=COUNTER+1
           done
+    
           if [ $COUNTER -eq 15 ]; then
             echo "Error: Ollama is down!"
-            exit 1
+            exit 1}
           fi
           
       - name: Pull Base Model
