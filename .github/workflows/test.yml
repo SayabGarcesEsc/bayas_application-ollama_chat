@@ -2,7 +2,7 @@ name: Java Spring Boot with Ollama model (AI engineer locally)
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "main", "master" ]
 
@@ -11,38 +11,61 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # Install and Start Ollama Server with DeepSeek Model
-      - name: Install and Setup Ollama
-        run: |
-          # 1. Instalar Ollama de forma nativa en la máquina virtual de Ubuntu
-          curl -fsSL https://ollama.com | sh
-          
-          # 2. Iniciar el servicio de Ollama en segundo plano
-          ollama serve &
-          
-          # 3. Esperar un momento a que el servidor web responda en el puerto 11434
-          echo "Esperando a que Ollama responda..."
-          until curl -s http://localhost:11434 > /dev/null; do sleep 2; done
-          
-          # 4. Descargar el modelo específico definido en application.properties
-          echo "Descargando modelo deepseek-r1:1.5b..."
-          ollama pull deepseek-r1:1.5b
+      # 1. ALWAYS Checkout Code first
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Setup Java 21 Environment
+      # 2. Setup Java Environment (enables caching early)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'          # <-- Automatically caches Gradle dependencies
-      # Grant execute permissions for the Gradle Wrapper
+          cache: 'gradle'
+
+      # 3. Install Ollama and start it properly with systemd / systemctl 
+      # This ensures it survives across step transitions on Ubuntu runners
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start Ollama server  
+        run: |
+          # Start server in the background
+          ollama serve &
+
+          # Wait for the server API to become responsive
+          echo "Waiting for Ollama server to start..."
+          for i in {1..30}: do
+            if curl -s http://localhost:11434/api/tags > /dev/null; then
+              echo "Ollama server is up!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Waiting for answering while 30 seconds
+        run: echo "Waiting for Ollama answers..." |
+          COUNTER=0
+          until curl -s http://localhost:11434 > /dev/null || [ $COUNTER -eq 15 ]; do
+            sleep 2
+            let COUNTER=COUNTER+1
+          done
+          
+          if [ $COUNTER -eq 15 ]; then
+            echo "Error: Ollama is down!"
+            exit 1
+          fi
+          
+      - name: Pull Base Model
+        run: |
+          # Pull the base model you want to customize (e.g. llama3.2, phi3, etc)
+          ollama pull deepseek-r1:1.5b
+
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
 
-      # Run sequentially Spring Boot test and pitest using Gradle Wrapper 
-      # Passes Redis and Ollama env properties to the execution contexts
+      # 4. Run your tests (Ollama will still be active here via systemd)
+      # NOTE: If your app uses Redis, ensure a Redis service container is added to this job!
       - name: Run Spring Boot Tests and PiTest
         run: ./gradlew clean test pitest
         env:
