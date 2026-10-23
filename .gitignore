@@ -6,7 +6,7 @@ build/
 .gradle/
 bin/
 *.class
-*.jar
+#*.jar
 *.war
 *.ear
 
